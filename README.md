@@ -1,6 +1,6 @@
 # Wordle game in React Native
 
-## Homework
+## To be added
 ### Necessities
 - Refresh page when game is done, choosing a new word.
 
