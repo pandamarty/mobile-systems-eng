@@ -21,7 +21,7 @@ const GuessDistributionLine = ({ position, amount, percentage }) => {
           backgroundColor: colors.grey,
           margin: 5,
           padding: 5,
-          width: `$(percentage)%`,
+          width: `${percentage}%`,
         }}
       >
         <Text style={{ color: colors.lightgrey }}>{amount}</Text>
@@ -70,7 +70,6 @@ const Endscreen = ({ won = false }) => {
               fontWeight: "bold",
             }}
           >
-            10:35:00
           </Text>
         </View>
 
