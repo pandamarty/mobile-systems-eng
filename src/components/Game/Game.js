@@ -25,7 +25,7 @@ const testWord = "hello";
 };*/
 
 const Game = () => {
-  //AsyncStorage.removeItem("@game");
+  AsyncStorage.removeItem("@game");
   const word = WORDS[dayOfTheYear];
   //const word = testWord;
   const letters = word.split("");
@@ -84,11 +84,8 @@ const Game = () => {
     const dataString = await AsyncStorage.getItem("@game");
     try {
       const data = JSON.parse(dataString);
-      const day = data[dayKey];
-      setRows(data.rows);
-      setCurCol(data.curCol);
-      setCurRow(data.curRow);
-      setGameState(data.gameState);
+      
+      setPlayed(Object.keys(data).length)
     } catch (e) {
       console.log("Couldn't parse the state.");
     }
@@ -98,30 +95,12 @@ const Game = () => {
 
   const checkGameState = () => {
     if (checkIfWon() && gameState != "won") {
-      Alert.alert("Hurray!!!", "You won!", [
-        { text: "Share", onPress: shareScore },
-      ]);
-      //requestWordDef();
       setGameState("won");
       //restartGame();
     } else if (checkIfLost() && gameState != "lost") {
-      Alert.alert("Naw...", "Try again tomorrow :(");
       setGameState("lost");
       //restartGame();
     }
-  };
-
-  const shareScore = () => {
-    const textMap = rows
-      .map((row, i) =>
-        row.map((cell, j) => colorsToEmoji[getCellBGColor(i, j)]).join("")
-      )
-      .filter((row) => row)
-      .join("\n");
-
-    const textToShare = `My Wordle solution \n ${textMap}`;
-    Clipboard.setString(textToShare);
-    Alert.alert("Copied successfully!", "Share your score on social media!");
   };
 
   const checkIfWon = () => {
@@ -219,7 +198,7 @@ const Game = () => {
   }
 
   if (gameState !== "playing") {
-    return <Endscreen won={gameState === "won"} />;
+    return <Endscreen won={gameState === "won"} rows={rows} getCellBGColor={getCellBGColor} />;
   }
 
   return (
