@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Text, View, Alert, ActivityIndicator } from "react-native";
+import { Text, View, Alert, ActivityIndicator, ScrollView } from "react-native";
 import { colors, CLEAR, ENTER, colorsToEmoji } from "../../constants";
 import Keyboard from "../Keyboard";
 import * as Clipboard from "expo-clipboard";
@@ -9,6 +9,8 @@ import styles from "./Game.styles";
 import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Endscreen from "../EndScreen/EndScreen";
+import Animated, { SlideInLeft, ZoomIn, FlipInEasyY } from "react-native-reanimated";
+
 
 const NUMBER_OF_TRIES = 6;
 
@@ -25,7 +27,7 @@ const testWord = "hello";
 };*/
 
 const Game = () => {
-  AsyncStorage.removeItem("@game");
+  //AsyncStorage.removeItem("@game");
   const word = WORDS[dayOfTheYear];
   //const word = testWord;
   const letters = word.split("");
@@ -85,7 +87,6 @@ const Game = () => {
     try {
       const data = JSON.parse(dataString);
       
-      setPlayed(Object.keys(data).length)
     } catch (e) {
       console.log("Couldn't parse the state.");
     }
@@ -182,6 +183,14 @@ const Game = () => {
   const yellowCaps = getAllLettersWithColor(colors.secondary);
   const greyCaps = getAllLettersWithColor(colors.darkgrey);
 
+  const getCellStyle = (i, j) => [
+    styles.cell,
+    {
+      borderColor: isCellActive(i, j) ? colors.grey : colors.darkgrey,
+      backgroundColor: getCellBGColor(i, j),
+    },
+  ];
+
   const requestWordDef = (word) => {
     const Http = new XMLHttpRequest();
     const url = "https://jsonplaceholder.typicode.com/posts";
@@ -203,28 +212,45 @@ const Game = () => {
 
   return (
     <>
-      <View style={styles.map}>
+      <ScrollView style={styles.map}>
         {rows.map((row, i) => (
-          <View key={`row-${i}`} style={styles.row}>
+          <Animated.View 
+            entering={SlideInLeft.delay(i * 30)} 
+            key={`row-${i}`} 
+            style={styles.row}>
+            
             {row.map((letter, j) => (
-              <View
-                key={`cell-${i}-${j}`}
-                style={[
-                  styles.cell,
-                  {
-                    borderColor: isCellActive(i, j)
-                      ? colors.grey
-                      : colors.darkgrey,
-                    backgroundColor: getCellBGColor(i, j),
-                  },
-                ]}
-              >
-                <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+            <>
+              {i < curRow &&(
+              <Animated.View 
+                entering={FlipInEasyY.delay(j * 100)}
+                key={`cell-color-${i}-${j}`} 
+                style={getCellStyle(i, j)}>
+                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+              </Animated.View>
+             )}
+
+              {i === curRow && !!letter &&(
+              <Animated.View 
+                entering={ZoomIn} 
+                key={`cell-active-${i}-${j}`} 
+                style={getCellStyle(i, j)}>
+                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+              </Animated.View>
+             )}
+
+              {!letter &&(
+              <View 
+                key={`cell-${i}-${j}`} 
+                style={getCellStyle(i, j)}>
+                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
               </View>
-            ))}
-          </View>
+             )}
+           </>
+          ))}
+        </Animated.View>
         ))}
-      </View>
+    </ScrollView>
 
       <Keyboard
         onKeyPressed={onKeyPressed}
