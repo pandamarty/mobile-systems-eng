@@ -3,14 +3,16 @@ import { useState } from "react";
 import { Text, View, Alert, ActivityIndicator, ScrollView } from "react-native";
 import { colors, CLEAR, ENTER, colorsToEmoji } from "../../constants";
 import Keyboard from "../Keyboard";
-import * as Clipboard from "expo-clipboard";
 import { WORDS } from "../../words";
 import styles from "./Game.styles";
 import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Endscreen from "../EndScreen/EndScreen";
-import Animated, { SlideInLeft, ZoomIn, FlipInEasyY } from "react-native-reanimated";
-
+import Animated, {
+  SlideInLeft,
+  ZoomIn,
+  FlipInEasyY,
+} from "react-native-reanimated";
 
 const NUMBER_OF_TRIES = 6;
 
@@ -28,8 +30,8 @@ const testWord = "hello";
 
 const Game = () => {
   //AsyncStorage.removeItem("@game");
-  const word = WORDS[dayOfTheYear];
-  //const word = testWord;
+  //const word = WORDS[dayOfTheYear];
+  const word = testWord;
   const letters = word.split("");
 
   const [rows, setRows] = useState(
@@ -86,7 +88,6 @@ const Game = () => {
     const dataString = await AsyncStorage.getItem("@game");
     try {
       const data = JSON.parse(dataString);
-      
     } catch (e) {
       console.log("Couldn't parse the state.");
     }
@@ -207,50 +208,56 @@ const Game = () => {
   }
 
   if (gameState !== "playing") {
-    return <Endscreen won={gameState === "won"} rows={rows} getCellBGColor={getCellBGColor} />;
+    return (
+      <Endscreen
+        won={gameState === "won"}
+        rows={rows}
+        getCellBGColor={getCellBGColor}
+      />
+    );
   }
 
   return (
     <>
       <ScrollView style={styles.map}>
         {rows.map((row, i) => (
-          <Animated.View 
-            entering={SlideInLeft.delay(i * 30)} 
-            key={`row-${i}`} 
-            style={styles.row}>
-            
+          <Animated.View
+            entering={SlideInLeft.delay(i * 30)}
+            key={`row-${i}`}
+            style={styles.row}
+          >
             {row.map((letter, j) => (
-            <>
-              {i < curRow &&(
-              <Animated.View 
-                entering={FlipInEasyY.delay(j * 100)}
-                key={`cell-color-${i}-${j}`} 
-                style={getCellStyle(i, j)}>
-                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-              </Animated.View>
-             )}
+              <>
+                {i < curRow && (
+                  <Animated.View
+                    entering={FlipInEasyY.delay(j * 100)}
+                    key={`cell-color-${i}-${j}`}
+                    style={getCellStyle(i, j)}
+                  >
+                    <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+                  </Animated.View>
+                )}
 
-              {i === curRow && !!letter &&(
-              <Animated.View 
-                entering={ZoomIn} 
-                key={`cell-active-${i}-${j}`} 
-                style={getCellStyle(i, j)}>
-                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-              </Animated.View>
-             )}
+                {i === curRow && !!letter && (
+                  <Animated.View
+                    entering={ZoomIn}
+                    key={`cell-active-${i}-${j}`}
+                    style={getCellStyle(i, j)}
+                  >
+                    <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+                  </Animated.View>
+                )}
 
-              {!letter &&(
-              <View 
-                key={`cell-${i}-${j}`} 
-                style={getCellStyle(i, j)}>
-                  <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
-              </View>
-             )}
-           </>
-          ))}
-        </Animated.View>
+                {!letter && (
+                  <View key={`cell-${i}-${j}`} style={getCellStyle(i, j)}>
+                    <Text style={styles.cellText}>{letter.toUpperCase()}</Text>
+                  </View>
+                )}
+              </>
+            ))}
+          </Animated.View>
         ))}
-    </ScrollView>
+      </ScrollView>
 
       <Keyboard
         onKeyPressed={onKeyPressed}

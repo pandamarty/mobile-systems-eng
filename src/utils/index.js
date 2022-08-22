@@ -14,5 +14,5 @@ export const getDayOfTheYear = () => {
 export const getDayKey = () => {
   const d = new Date();
   let year = d.getFullYear();
-  return `day-${getDayOfTheYear() + 9}-${year}`;
+  return `day-${getDayOfTheYear() + 1}-${year}`;
 };
