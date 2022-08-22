@@ -16,3 +16,9 @@ export const getDayKey = () => {
   let year = d.getFullYear();
   return `day-${getDayOfTheYear() + 1}-${year}`;
 };
+
+export const startNewGame = () => {
+  const randomNumber = Math.random() * 10 + 5;
+  console.log(parseInt(randomNumber));
+  return parseInt(randomNumber);
+};

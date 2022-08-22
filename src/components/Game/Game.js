@@ -8,11 +8,16 @@ import {
   ScrollView,
   Pressable,
 } from "react-native";
-import { colors, CLEAR, ENTER, colorsToEmoji } from "../../constants";
+import { colors, CLEAR, ENTER } from "../../constants";
 import Keyboard from "../Keyboard";
 import { WORDS } from "../../words";
 import styles from "./Game.styles";
-import { copyArray, getDayOfTheYear, getDayKey } from "../../utils";
+import {
+  copyArray,
+  getDayOfTheYear,
+  getDayKey,
+  startNewGame,
+} from "../../utils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import Endscreen from "../EndScreen/EndScreen";
 import Animated, {
@@ -27,19 +32,15 @@ const NUMBER_OF_TRIES = 6;
 const dayOfTheYear = getDayOfTheYear();
 const dayKey = getDayKey();
 
+const randomGame = startNewGame();
+
 const testWord = "sugar";
 
-/*const game = {
-  rows: [[], []],
-  curRow: 4,
-  curCol: 2,
-  gameState: "won",
-};*/
-
-const Game = () => {
+const Game = ({ navigation }) => {
   //AsyncStorage.removeItem("@game");
   //const word = WORDS[dayOfTheYear];
-  const word = testWord;
+  const word = WORDS[randomGame];
+  //const word = testWord;
   const letters = word.split("");
 
   const [rows, setRows] = useState(
@@ -50,8 +51,10 @@ const Game = () => {
   const [curCol, setCurCol] = useState(0);
   const [gameState, setGameState] = useState("playing"); // won, lost, playing
   const [loaded, setLoaded] = useState(false);
+  const [despClue, setDespClue] = useState("");
   const [definition, setDefinition] = useState("");
   const [wordType, setWordType] = useState("");
+  const [showEmergencyBtn, setShowEmergencyBtn] = useState(false);
 
   useEffect(() => {
     if (curRow > 0) {
@@ -112,6 +115,10 @@ const Game = () => {
     } else if (checkIfLost() && gameState != "lost") {
       setGameState("lost");
       //restartGame();
+    }
+    if (curRow === rows[rows.length - 1]) {
+      requestWord;
+      setShowEmergencyBtn(true);
     }
   };
 
@@ -202,7 +209,7 @@ const Game = () => {
     },
   ];
 
-  const requestWordDef = () => {
+  const requestWord = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const Http = new XMLHttpRequest();
     const url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + word;
@@ -214,8 +221,10 @@ const Game = () => {
         const resJson = JSON.parse(Http.response);
         const def = resJson[0].meanings[0].definitions[0].definition;
         const type = resJson[0].meanings[0].partOfSpeech;
+        const clue = resJson[0].meanings[0].definitions[0].synonyms;
         setDefinition(def);
         setWordType(type);
+        setDespClue(clue);
       }
     };
   };
@@ -276,23 +285,51 @@ const Game = () => {
         ))}
       </ScrollView>
 
-      <Text style={{ color: colors.lightgrey }}>{wordType}</Text>
-
-      <Pressable
-        onPress={requestWordDef}
-        style={{
-          backgroundColor: colors.primary,
-          borderRadius: 20,
-          alignItems: "center",
-          justifyContent: "center",
-          height: 45,
-          width: 150,
-        }}
+      <Text
+        style={{ color: colors.lightgrey, fontSize: 20, fontWeight: "bold" }}
       >
-        <Text style={{ color: colors.lightgrey, fontWeight: "bold" }}>
-          Word Definition
-        </Text>
-      </Pressable>
+        {wordType}
+      </Text>
+      <Animated.View
+        entering={SlideInLeft.delay(200).springify().mass(0.5)}
+        style={{ flexDirection: "row", padding: 10 }}
+      >
+        {showEmergencyBtn ? (
+          <Pressable
+            onPress={requestWord}
+            style={{
+              flex: 1,
+              backgroundColor: colors.secondary,
+              borderRadius: 20,
+              alignItems: "center",
+              justifyContent: "center",
+              height: 45,
+              width: 120,
+            }}
+          >
+            <Text style={{ color: colors.lightgrey, fontWeight: "bold" }}>
+              Desperate Clue
+            </Text>
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          onPress={requestWord}
+          style={{
+            flex: 1,
+            backgroundColor: colors.primary,
+            borderRadius: 20,
+            alignItems: "center",
+            justifyContent: "center",
+            height: 45,
+            width: 120,
+          }}
+        >
+          <Text style={{ color: colors.lightgrey, fontWeight: "bold" }}>
+            Clue
+          </Text>
+        </Pressable>
+      </Animated.View>
 
       <Keyboard
         onKeyPressed={onKeyPressed}

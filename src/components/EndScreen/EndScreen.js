@@ -15,7 +15,9 @@ const Number = ({ number, label }) => (
   </View>
 );
 
-/*const GuessDistributionLine = ({ position, amount, percentage }) => {
+const GuessDistributionLine = ({ position, amount, percentage }) => {
+  console.log("Position: " + position);
+  console.log("Amount: " + amount);
   return (
     <View style={{ flexDirection: "row", alignItems: "center", width: "100%" }}>
       <Text style={{ color: colors.lightgrey }}>{position}</Text>
@@ -26,16 +28,16 @@ const Number = ({ number, label }) => (
           margin: 5,
           padding: 5,
           width: `${percentage}%`,
-          winWidth: 20,
+          minWidth: 20,
         }}
       >
         <Text style={{ color: colors.lightgrey }}>{amount}</Text>
       </View>
     </View>
   );
-};*/
+};
 
-/*const GuessDistribution = ({ distribution }) => {
+const GuessDistribution = ({ distribution }) => {
   if (!distribution) {
     return null;
   }
@@ -55,15 +57,15 @@ const Number = ({ number, label }) => (
       </View>
     </>
   );
-};*/
+};
 
-const Endscreen = ({ won = false, rows, getCellBGColor }) => {
+const Endscreen = ({ won = false, rows, getCellBGColor, navigation }) => {
   const [secondsTillTomorrow, setSecondsTillTomorrow] = useState(0);
   const [played, setPlayed] = useState(0);
   const [winRate, setWinRate] = useState(0);
   const [curStreak, setCurStreak] = useState(0);
   const [maxStreak, setMaxStreak] = useState(0);
-  //const [distribution, setDistribution] = useState(null);
+  const [distribution, setDistribution] = useState(null);
 
   useEffect(() => {
     readState();
@@ -81,14 +83,6 @@ const Endscreen = ({ won = false, rows, getCellBGColor }) => {
     const textToShare = `My Wordle solution \n ${textMap}`;
     Clipboard.setString(textToShare);
     Alert.alert("Copied successfully!", "Share your score on social media!");
-  };
-
-  const restartGame = () => {
-    setRows(
-      new Array(NUMBER_OF_TRIES).fill(new Array(letters.length).fill(""))
-    );
-    setGameState("playing");
-    //getNewWord();
   };
 
   useEffect(() => {
@@ -145,8 +139,8 @@ const Endscreen = ({ won = false, rows, getCellBGColor }) => {
     setCurStreak(_curStreak);
     setMaxStreak(maxStreak);
 
-    /*guess distribution
-    const dist = [0, 0, 0, 0, 0, 0];
+    // guess distribution
+    const dist = [1, 0, 0, 0, 0, 0];
 
     values.map((game) => {
       if (game.gameState === "won") {
@@ -154,7 +148,8 @@ const Endscreen = ({ won = false, rows, getCellBGColor }) => {
         dist[tries] = dist[tries] + 1;
       }
     });
-    setDistribution(dist);*/
+    setDistribution(dist);
+    console.log(distribution);
   };
 
   const formatSeconds = () => {
@@ -181,6 +176,18 @@ const Endscreen = ({ won = false, rows, getCellBGColor }) => {
         <Number number={curStreak} label={"Cur streak"} />
         <Number number={maxStreak} label={"Max streak"} />
       </View>
+
+      <Animated.View
+        entering={SlideInLeft.delay(200).springify().mass(0.5)}
+        style={{ flexDirection: "row", padding: 10 }}
+      >
+        <View style={{ alignItems: "center", flex: 1 }}>
+          <GuessDistribution
+            style={{ justifyContent: "center" }}
+            distribution={distribution}
+          />
+        </View>
+      </Animated.View>
 
       <Animated.View
         entering={SlideInLeft.delay(200).springify().mass(0.5)}
@@ -219,7 +226,10 @@ const Endscreen = ({ won = false, rows, getCellBGColor }) => {
         style={{ flexDirection: "row", padding: 10, height: 70 }}
       >
         <Pressable
-          onPress={restartGame}
+          onPress={() =>
+            navigation.navigate("Play") &&
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+          }
           style={{
             flex: 1,
             backgroundColor: colors.primary,
