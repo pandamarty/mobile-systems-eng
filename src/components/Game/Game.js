@@ -1,6 +1,13 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Text, View, Alert, ActivityIndicator, ScrollView } from "react-native";
+import {
+  Text,
+  View,
+  Alert,
+  ActivityIndicator,
+  ScrollView,
+  Pressable,
+} from "react-native";
 import { colors, CLEAR, ENTER, colorsToEmoji } from "../../constants";
 import Keyboard from "../Keyboard";
 import { WORDS } from "../../words";
@@ -13,13 +20,14 @@ import Animated, {
   ZoomIn,
   FlipInEasyY,
 } from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
 
 const NUMBER_OF_TRIES = 6;
 
 const dayOfTheYear = getDayOfTheYear();
 const dayKey = getDayKey();
 
-const testWord = "hello";
+const testWord = "sugar";
 
 /*const game = {
   rows: [[], []],
@@ -42,6 +50,8 @@ const Game = () => {
   const [curCol, setCurCol] = useState(0);
   const [gameState, setGameState] = useState("playing"); // won, lost, playing
   const [loaded, setLoaded] = useState(false);
+  const [definition, setDefinition] = useState("");
+  const [wordType, setWordType] = useState("");
 
   useEffect(() => {
     if (curRow > 0) {
@@ -192,14 +202,21 @@ const Game = () => {
     },
   ];
 
-  const requestWordDef = (word) => {
+  const requestWordDef = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const Http = new XMLHttpRequest();
-    const url = "https://jsonplaceholder.typicode.com/posts";
+    const url = "https://api.dictionaryapi.dev/api/v2/entries/en/" + word;
     Http.open("GET", url);
     Http.send();
 
-    Http.onreadystatechange = (e) => {
-      console.log(Http.responseText);
+    Http.onreadystatechange = function () {
+      if (this.readyState == 4 && this.status == 200) {
+        const resJson = JSON.parse(Http.response);
+        const def = resJson[0].meanings[0].definitions[0].definition;
+        const type = resJson[0].meanings[0].partOfSpeech;
+        setDefinition(def);
+        setWordType(type);
+      }
     };
   };
 
@@ -258,6 +275,24 @@ const Game = () => {
           </Animated.View>
         ))}
       </ScrollView>
+
+      <Text style={{ color: colors.lightgrey }}>{wordType}</Text>
+
+      <Pressable
+        onPress={requestWordDef}
+        style={{
+          backgroundColor: colors.primary,
+          borderRadius: 20,
+          alignItems: "center",
+          justifyContent: "center",
+          height: 45,
+          width: 150,
+        }}
+      >
+        <Text style={{ color: colors.lightgrey, fontWeight: "bold" }}>
+          Word Definition
+        </Text>
+      </Pressable>
 
       <Keyboard
         onKeyPressed={onKeyPressed}

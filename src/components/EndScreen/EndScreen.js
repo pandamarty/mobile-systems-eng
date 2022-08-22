@@ -70,6 +70,7 @@ const Endscreen = ({ won = false, rows, getCellBGColor }) => {
   }, []);
 
   const share = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const textMap = rows
       .map((row, i) =>
         row.map((cell, j) => colorsToEmoji[getCellBGColor(i, j)]).join("")
